@@ -67,8 +67,8 @@ export default function App() {
 
   // Load dynamic modules registry and saved state on mount
   useEffect(() => {
-    // First load modules, then load saved state
-    fetch('/api/modules')
+    // Load modules from static JSON file
+    fetch('/modules.json')
       .then(res => res.json())
       .then(data => {
         Object.assign(TOPIC_IFRAME_URLS, data);
