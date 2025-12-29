@@ -48,16 +48,7 @@ jobs:
                 
                 # Fix common JSX syntax errors in App.tsx before building
                 if [ -f "$tempdir/App.tsx" ]; then
-                  # Fix arrow operators -> to {'->'} 
-                  sed -i "s/ -> / {'->'} /g" "$tempdir/App.tsx"
-                  # Fix double arrows >> to {'>>'}
-                  sed -i 's/">>/{">>"}/g' "$tempdir/App.tsx"
-                  # Fix standalone > in text to {'>'}
-                  sed -i 's/(\([^<>]*\)>\([0-9]\)/({\1{">"}\2}/g' "$tempdir/App.tsx"
-                  # Fix HTML entities - replace &lt; and &gt; with {"<"} and {">"}
-                  sed -i 's/&lt;/{'"'"'<'"'"'}/g' "$tempdir/App.tsx"
-                  sed -i 's/&gt;/{'"'"'>'"'"'}/g' "$tempdir/App.tsx"
-                  echo "Fixed JSX syntax errors in App.tsx"
+                  python3 .github/scripts/fix_jsx.py "$tempdir/App.tsx"
                 fi
                 
                 cd "$tempdir"
