@@ -13,4 +13,5 @@ export const TOPIC_APP_REGISTRY: Record<string, React.FC<{onBack: () => void}>> 
 export const TOPIC_IFRAME_URLS: Record<string, string> = {
   "Schizophrenia": "/Psych-hub/modules/schizophrenia/index.html",
   "Issues & Debates": "/Psych-hub/modules/Issues%20%26%20Debates/index.html",
+  "Relationships": "/Psych-hub/modules/psychology_-relationships/index.html",
 };
