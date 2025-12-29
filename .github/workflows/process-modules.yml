@@ -36,6 +36,13 @@ jobs:
               # Extract zip to module directory
               unzip -o "$zipfile" -d "public/modules/$modulename"
               
+              # Fix absolute paths in index.html to be relative
+              if [ -f "public/modules/$modulename/index.html" ]; then
+                sed -i 's|href="/|href="./|g' "public/modules/$modulename/index.html"
+                sed -i 's|src="/|src="./|g' "public/modules/$modulename/index.html"
+                echo "Fixed paths in index.html for $modulename"
+              fi
+              
               echo "Extracted $modulename to public/modules/$modulename"
             fi
           done
