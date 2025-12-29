@@ -1,0 +1,71 @@
+name: Process Module Zips
+
+on:
+  push:
+    paths:
+      - 'modules-zips/**/*.zip'
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  extract-modules:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Extract and organize modules
+        run: |
+          # Create public/modules directory if it doesn't exist
+          mkdir -p public/modules
+          
+          # Process each zip file
+          for zipfile in modules-zips/*.zip; do
+            if [ -f "$zipfile" ]; then
+              # Get module name (filename without .zip)
+              modulename=$(basename "$zipfile" .zip)
+              echo "Processing module: $modulename"
+              
+              # Create module directory
+              mkdir -p "public/modules/$modulename"
+              
+              # Extract zip to module directory
+              unzip -o "$zipfile" -d "public/modules/$modulename"
+              
+              echo "Extracted $modulename to public/modules/$modulename"
+            fi
+          done
+      
+      - name: Update modules registry
+        run: |
+          # Create or update modules.json
+          echo "{" > modules.json
+          first=true
+          for moduledir in public/modules/*; do
+            if [ -d "$moduledir" ]; then
+              modulename=$(basename "$moduledir")
+              if [ "$first" = true ]; then
+                first=false
+              else
+                echo "," >> modules.json
+              fi
+              echo "  \"$modulename\": \"/Psych-hub/modules/$modulename/index.html\"" >> modules.json
+            fi
+          done
+          echo "" >> modules.json
+          echo "}" >> modules.json
+          
+          echo "Updated modules.json:"
+          cat modules.json
+      
+      - name: Commit extracted modules
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add public/modules modules.json
+          git diff --staged --quiet || git commit -m "Auto-extract modules from zips [skip ci]"
+          git push
