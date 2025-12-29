@@ -5,7 +5,6 @@ import {
 } from 'lucide-react';
 import { Level, ModuleCategory, LessonModule, Lesson, Slide } from './types';
 import { SlideRenderer } from './components/SlideRenderer';
-import ModuleUploader from './components/ModuleUploader';
 import { TOPIC_APP_REGISTRY, TOPIC_IFRAME_URLS } from './components/topics/registry';
 
 // --- MOCK CURRICULUM SKELETON (Navigation Structure) ---
@@ -518,11 +517,6 @@ export default function App() {
         <p className="text-slate-400 text-xl font-light max-w-lg mx-auto">
             The revision platform for AQA Psychology students.
         </p>
-        <ModuleUploader onUploadSuccess={(moduleName) => {
-          // Update the registry dynamically
-          TOPIC_IFRAME_URLS[moduleName] = `/modules/${moduleName}/index.html`;
-          alert(`Module "${moduleName}" uploaded and registered!`);
-        }} />
       </div>
 
       <div className="flex flex-col md:flex-row gap-6 z-10">
