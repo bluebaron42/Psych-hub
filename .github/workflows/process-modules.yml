@@ -18,6 +18,11 @@ jobs:
         with:
           fetch-depth: 0
       
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      
       - name: Extract and organize modules
         run: |
           # Create public/modules directory if it doesn't exist
@@ -30,20 +35,35 @@ jobs:
               modulename=$(basename "$zipfile" .zip)
               echo "Processing module: $modulename"
               
-              # Create module directory
-              mkdir -p "public/modules/$modulename"
+              # Create temp directory for extraction
+              tempdir="temp_$modulename"
+              mkdir -p "$tempdir"
               
-              # Extract zip to module directory
-              unzip -o "$zipfile" -d "public/modules/$modulename"
+              # Extract zip to temp directory
+              unzip -o "$zipfile" -d "$tempdir"
               
-              # Fix absolute paths in index.html to be relative
-              if [ -f "public/modules/$modulename/index.html" ]; then
-                sed -i 's|href="/|href="./|g' "public/modules/$modulename/index.html"
-                sed -i 's|src="/|src="./|g' "public/modules/$modulename/index.html"
-                echo "Fixed paths in index.html for $modulename"
+              # Check if package.json exists (needs building)
+              if [ -f "$tempdir/package.json" ]; then
+                echo "Building $modulename..."
+                cd "$tempdir"
+                npm install
+                npm run build
+                cd ..
+                
+                # Copy built files to public/modules
+                mkdir -p "public/modules/$modulename"
+                cp -r "$tempdir/dist/"* "public/modules/$modulename/"
+                
+                # Cleanup temp directory
+                rm -rf "$tempdir"
+              else
+                # No build needed, just copy
+                mkdir -p "public/modules/$modulename"
+                cp -r "$tempdir/"* "public/modules/$modulename/"
+                rm -rf "$tempdir"
               fi
               
-              echo "Extracted $modulename to public/modules/$modulename"
+              echo "Processed $modulename"
             fi
           done
       
