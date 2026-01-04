@@ -54,11 +54,22 @@ jobs:
                 cd "$tempdir"
                 npm install
                 npm run build
+                
+                # Check if build succeeded
+                if [ ! -d "dist" ]; then
+                  echo "❌ ERROR: Build failed for $modulename - no dist folder created"
+                  cd ..
+                  rm -rf "$tempdir"
+                  exit 1
+                fi
+                
                 cd ..
                 
                 # Copy built files to public/modules
                 mkdir -p "public/modules/$modulename"
                 cp -r "$tempdir/dist/"* "public/modules/$modulename/"
+                
+                echo "✅ Successfully built and deployed $modulename"
                 
                 # Cleanup temp directory
                 rm -rf "$tempdir"
