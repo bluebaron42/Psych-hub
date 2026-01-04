@@ -86,21 +86,27 @@ jobs:
       
       - name: Update modules registry
         run: |
-          # Create or update modules.json
-          echo "{" > modules.json
-          first=true
+          # Create or update modules.json with proper formatting
+          modules=()
           for moduledir in public/modules/*; do
             if [ -d "$moduledir" ]; then
               modulename=$(basename "$moduledir")
-              if [ "$first" = true ]; then
-                first=false
-              else
-                echo "," >> modules.json
-              fi
-              echo "  \"$modulename\": \"/Psych-hub/modules/$modulename/index.html\"" >> modules.json
+              modules+=("$modulename")
             fi
           done
-          echo "" >> modules.json
+          
+          # Generate valid JSON
+          echo "{" > modules.json
+          for i in "${!modules[@]}"; do
+            modulename="${modules[$i]}"
+            if [ $i -eq $((${#modules[@]} - 1)) ]; then
+              # Last entry - no trailing comma
+              echo "  \"$modulename\": \"/Psych-hub/modules/$modulename/index.html\"" >> modules.json
+            else
+              # Not last - add comma
+              echo "  \"$modulename\": \"/Psych-hub/modules/$modulename/index.html\"," >> modules.json
+            fi
+          done
           echo "}" >> modules.json
           
           echo "Updated modules.json:"
