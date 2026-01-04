@@ -23,6 +23,13 @@ content = re.sub(r'&amp;', '{"&"}', content)
 if content != original:
     fixes_made.append("HTML entities (&lt;, &gt;, &amp;)")
 
+# Fix > at start of line/text (common in terminal-style output)
+# Matches patterns like: > SOME TEXT or              > SOME TEXT
+original = content
+content = re.sub(r'(\s+|^)>\s+([A-Z_])', r'\1{">"} \2', content, flags=re.MULTILINE)
+if content != original:
+    fixes_made.append("Single angle bracket at line start (>)")
+
 # Fix >> at start of text (after tag closing >)
 original = content
 content = re.sub(r'(>)>>\s+', r'\1{">>"} ', content)
