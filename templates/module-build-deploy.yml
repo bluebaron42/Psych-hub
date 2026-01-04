@@ -1,0 +1,86 @@
+name: Build and Deploy Module
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      
+      - name: Install dependencies
+        run: npm install
+      
+      - name: Build module
+        run: npm run build
+      
+      - name: Create deployment package
+        run: |
+          cd dist
+          zip -r ../module-dist.zip .
+          cd ..
+          echo "✅ Created module-dist.zip ($(du -h module-dist.zip | cut -f1))"
+      
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/}
+          
+          # Create release if triggered by tag
+          if [[ $GITHUB_REF == refs/tags/* ]]; then
+            gh release create "$VERSION" \
+              module-dist.zip \
+              --title "Release $VERSION" \
+              --generate-notes
+          else
+            # For manual runs, create/update "latest" release
+            gh release delete latest --yes 2>/dev/null || true
+            gh release create latest \
+              module-dist.zip \
+              --title "Latest Build" \
+              --notes "Latest development build" \
+              --prerelease
+          fi
+      
+      - name: Trigger Psych-hub sync
+        env:
+          DEPLOY_TOKEN: ${{ secrets.PSYCH_HUB_DEPLOY_TOKEN }}
+        run: |
+          if [[ $GITHUB_REF == refs/tags/* ]]; then
+            VERSION=${GITHUB_REF#refs/tags/}
+          else
+            VERSION="latest"
+          fi
+          
+          MODULE_NAME="${{ github.event.repository.name }}"
+          
+          # Extract display name from package.json or use repo name
+          DISPLAY_NAME=$(node -p "try { require('./package.json').displayName } catch(e) { '$MODULE_NAME' }")
+          
+          echo "🚀 Triggering Psych-hub sync for: $DISPLAY_NAME"
+          
+          curl -X POST \
+            -H "Authorization: token $DEPLOY_TOKEN" \
+            -H "Accept: application/vnd.github.v3+json" \
+            https://api.github.com/repos/bluebaron42/Psych-hub/dispatches \
+            -d "{
+              \"event_type\": \"module_updated\",
+              \"client_payload\": {
+                \"module_repo\": \"$MODULE_NAME\",
+                \"module_name\": \"$DISPLAY_NAME\",
+                \"version\": \"$VERSION\"
+              }
+            }"
+          
+          echo "✅ Sync triggered! Check: https://github.com/bluebaron42/Psych-hub/actions"
