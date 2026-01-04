@@ -13,6 +13,11 @@ on:
         required: true
       version:
         description: 'Version tag (e.g., v1.0.0 or latest)'
+        required: true
+        default: 'latest'
+
+permissions:
+  contents: write
         required: false
         default: 'latest'
 
