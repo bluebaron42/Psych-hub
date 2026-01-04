@@ -1,0 +1,97 @@
+name: Sync Module from External Repo
+
+on:
+  repository_dispatch:
+    types: [module_updated]
+  workflow_dispatch:
+    inputs:
+      module_repo:
+        description: 'Module repo name (e.g., psychology-relationships)'
+        required: true
+      module_display_name:
+        description: 'Display name in modules.json (e.g., Relationships)'
+        required: true
+      version:
+        description: 'Version tag (e.g., v1.0.0 or latest)'
+        required: false
+        default: 'latest'
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Psych-hub
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Download module build
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          MODULE_REPO="${{ github.event.client_payload.module_repo || github.event.inputs.module_repo }}"
+          MODULE_NAME="${{ github.event.client_payload.module_name || github.event.inputs.module_display_name }}"
+          VERSION="${{ github.event.client_payload.version || github.event.inputs.version }}"
+          
+          echo "📥 Downloading module: $MODULE_REPO ($VERSION)"
+          
+          # Download the release asset
+          if [ "$VERSION" = "latest" ]; then
+            gh release download \
+              --repo "bluebaron42/$MODULE_REPO" \
+              --pattern "module-dist.zip" \
+              --dir /tmp
+          else
+            gh release download "$VERSION" \
+              --repo "bluebaron42/$MODULE_REPO" \
+              --pattern "module-dist.zip" \
+              --dir /tmp
+          fi
+          
+          # Extract to public/modules
+          echo "📦 Extracting to public/modules/$MODULE_NAME"
+          mkdir -p "public/modules/$MODULE_NAME"
+          unzip -o /tmp/module-dist.zip -d "public/modules/$MODULE_NAME"
+          
+          # Also extract to docs/modules for GitHub Pages
+          echo "📦 Extracting to docs/modules/$MODULE_NAME"
+          mkdir -p "docs/modules/$MODULE_NAME"
+          unzip -o /tmp/module-dist.zip -d "docs/modules/$MODULE_NAME"
+      
+      - name: Update modules.json
+        run: |
+          MODULE_NAME="${{ github.event.client_payload.module_name || github.event.inputs.module_display_name }}"
+          
+          # Update modules.json
+          node -e "
+          const fs = require('fs');
+          const modulesPath = 'modules.json';
+          let modules = {};
+          
+          if (fs.existsSync(modulesPath)) {
+            modules = JSON.parse(fs.readFileSync(modulesPath, 'utf8'));
+          }
+          
+          modules['$MODULE_NAME'] = '/Psych-hub/modules/$MODULE_NAME/index.html';
+          
+          fs.writeFileSync(modulesPath, JSON.stringify(modules, null, 2) + '\n');
+          console.log('✅ Updated modules.json');
+          "
+      
+      - name: Commit and push changes
+        run: |
+          MODULE_NAME="${{ github.event.client_payload.module_name || github.event.inputs.module_display_name }}"
+          VERSION="${{ github.event.client_payload.version || github.event.inputs.version }}"
+          
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          
+          git add public/modules docs/modules modules.json
+          
+          if git diff --staged --quiet; then
+            echo "ℹ️ No changes to commit"
+          else
+            git commit -m "🔄 Update module: $MODULE_NAME ($VERSION)"
+            git push
+            echo "✅ Changes pushed successfully"
+          fi
