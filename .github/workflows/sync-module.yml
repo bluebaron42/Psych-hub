@@ -37,15 +37,23 @@ jobs:
           
           # Download the release asset
           if [ "$VERSION" = "latest" ]; then
-            gh release download \
+            if ! gh release download latest \
               --repo "bluebaron42/$MODULE_REPO" \
               --pattern "module-dist.zip" \
-              --dir /tmp
+              --dir /tmp; then
+                echo "❌ No latest release found for $MODULE_REPO"
+                echo "💡 Trigger the build workflow in https://github.com/bluebaron42/$MODULE_REPO/actions"
+                exit 1
+            fi
           else
-            gh release download "$VERSION" \
+            if ! gh release download "$VERSION" \
               --repo "bluebaron42/$MODULE_REPO" \
               --pattern "module-dist.zip" \
-              --dir /tmp
+              --dir /tmp; then
+                echo "❌ Release $VERSION not found for $MODULE_REPO"
+                echo "💡 Check releases at https://github.com/bluebaron42/$MODULE_REPO/releases"
+                exit 1
+            fi
           fi
           
           # Extract to public/modules
