@@ -6,12 +6,13 @@ Use this prompt when setting up new psychology learning modules to create the Gi
 
 ## Task Overview
 
-I need you to perform four critical setup tasks for this React/TypeScript educational module:
+I need you to perform these critical setup tasks for this React/TypeScript educational module:
 
 1. **Configure package.json** with required display name
-2. **Configure vite.config.ts** for proper asset paths
+2. **Configure vite.config.ts** for proper relative asset paths
 3. **Create GitHub Actions Workflow** for automated build, packaging, and deployment
-4. **Fix JSX Syntax Errors** specifically related to arrow syntax and special characters
+4. **Verify Third-Party Library Imports** to prevent runtime errors
+5. **Fix JSX Syntax Errors** specifically related to arrow syntax and special characters
 
 ---
 
@@ -86,6 +87,29 @@ export default defineConfig({
 - **With `base: './'`**: Assets will load from relative paths like `./assets/index.js` (CORRECT)
 
 This ensures the module works when embedded in Psych-hub's subdirectory structure.
+
+### Verify the Generated index.html
+
+**CRITICAL POST-BUILD VERIFICATION**: After building, check that `dist/index.html` uses relative paths:
+
+1. Run `npm run build`
+2. Open `dist/index.html` and verify asset paths:
+
+**CORRECT** (relative paths with `./`):
+```html
+<script type="module" crossorigin src="./assets/index-abc123.js"></script>
+<link rel="stylesheet" crossorigin href="./assets/index-def456.css">
+```
+
+**WRONG** (absolute paths with `/`):
+```html
+<script type="module" crossorigin src="/assets/index-abc123.js"></script>
+<link rel="stylesheet" crossorigin href="/assets/index-def456.css">
+```
+
+If you see absolute paths (`/assets/`), the `base: './'` configuration did not take effect. Double-check your vite.config.ts and rebuild.
+
+**Why this causes issues**: When deployed to `https://bluebaron42.github.io/Psych-hub/modules/YourModule/`, absolute paths like `/assets/` will try to load from the root (`/assets/`) instead of the module directory (`./assets/`), resulting in 404 errors.
 
 ---
 
@@ -208,6 +232,87 @@ This workflow:
 3. This workflow assumes your build output goes to a `dist/` directory
 4. The workflow expects `PSYCH_HUB_DEPLOY_TOKEN` secret to be configured in repository settings
 5. The workflow reads `displayName` from package.json - ensure Task 1 is completed first!
+
+---
+
+## Task 3.5: Verify Third-Party Library Imports
+
+### Problem Description
+
+When using charting libraries (Chart.js, Recharts, etc.) or other complex third-party dependencies, you may encounter runtime errors like `ReferenceError: Scale is not defined` even though the build succeeds.
+
+### Common Issues
+
+1. **Missing auto-registration imports** - Some libraries require specific imports to register components
+2. **Tree-shaking removing needed code** - Build optimization may incorrectly remove required dependencies
+3. **Circular dependencies** - Library internals may have dependency order requirements
+
+### Solution for Chart.js
+
+If using Chart.js, ensure you import and register all required components:
+
+**Incorrect** (may cause `ReferenceError: Scale is not defined`):
+```typescript
+import { Chart } from 'chart.js';
+import { Line } from 'react-chartjs-2';
+```
+
+**Correct** (properly registers all required components):
+```typescript
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend
+} from 'chart.js';
+import { Line } from 'react-chartjs-2';
+
+// Register components with Chart.js
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend
+);
+```
+
+### Solution for Other Libraries
+
+1. **Check documentation** - Look for "installation" or "setup" sections that mention required imports
+2. **Test in production mode** - Run `npm run build` and test the built output, not just dev mode
+3. **Check browser console** - Runtime errors often reveal missing dependencies
+4. **Verify package.json** - Ensure all peer dependencies are installed
+
+### Verification Steps
+
+1. **Build the module:**
+   ```bash
+   npm run build
+   ```
+
+2. **Test the built output locally:**
+   ```bash
+   npx serve dist
+   ```
+   
+3. **Open browser console** and interact with features that use third-party libraries
+4. **Look for runtime errors** like `ReferenceError`, `undefined is not a function`, etc.
+5. **Fix any missing imports** before deploying
+
+### Common Libraries and Import Requirements
+
+- **Chart.js**: Requires explicit scale registration (CategoryScale, LinearScale, etc.)
+- **Recharts**: Usually works with just component imports
+- **D3.js**: May require multiple sub-package imports (d3-scale, d3-axis, etc.)
+- **Three.js**: Often needs specific loader imports for different file types
+- **date-fns**: Use specific function imports to reduce bundle size
 
 ---
 
@@ -377,12 +482,16 @@ Here's what a complete fix might look like:
 
 - [ ] **Task 1**: Add `displayName` field to `package.json`
 - [ ] **Task 2**: Update `vite.config.ts` with `base: './'` for relative paths
+- [ ] Verify `dist/index.html` uses relative paths (`./assets/`) after build
 - [ ] **Task 3**: Create `.github/workflows/build-and-deploy.yml` with exact content above
 - [ ] Ensure `permissions: contents: write` is included in workflow
+- [ ] **Task 3.5**: Verify all third-party library imports are complete
+- [ ] Test built output locally with `npx serve dist` and check browser console
 - [ ] **Task 4**: Search all `.tsx` and `.jsx` files for `->` patterns
 - [ ] Replace all JSX text content arrows with `→` Unicode character
 - [ ] Verify no malformed patterns like `{'->'}>` remain
 - [ ] Run `npm run build` to confirm no JSX syntax errors
+- [ ] Test the module in browser to ensure no runtime errors
 - [ ] Commit all changes with descriptive message
 - [ ] Push to repository
 - [ ] Trigger workflow manually or create a tag to test deployment
@@ -391,17 +500,21 @@ Here's what a complete fix might look like:
 
 ## Expected Results
 
-After completing all four tasks:
+After completing all tasks:
 
 1. ✅ `package.json` has correct `displayName` field
 2. ✅ `vite.config.ts` configured with `base: './'` for relative asset paths
-3. ✅ GitHub Actions workflow file exists and is properly configured
-4. ✅ Workflow has correct permissions to create releases
-5. ✅ All JSX syntax errors related to arrow characters are resolved
-6. ✅ `npm run build` completes successfully with no errors
-7. ✅ Workflow can be triggered manually or via tags
-8. ✅ Module deploys to correct folder name in Psych-hub (matching displayName)
-9. ✅ Assets load correctly with relative paths (no 404 errors)
+3. ✅ `dist/index.html` uses relative paths (`./assets/`) not absolute paths (`/assets/`)
+4. ✅ GitHub Actions workflow file exists and is properly configured
+5. ✅ Workflow has correct permissions to create releases
+6. ✅ All third-party library dependencies properly imported and registered
+7. ✅ No runtime errors in browser console when testing with `npx serve dist`
+8. ✅ All JSX syntax errors related to arrow characters are resolved
+9. ✅ `npm run build` completes successfully with no errors
+10. ✅ Workflow can be triggered manually or via tags
+11. ✅ Module deploys to correct folder name in Psych-hub (matching displayName)
+12. ✅ Assets load correctly with relative paths (no 404 errors)
+13. ✅ No `ReferenceError` or missing dependency errors at runtime
 
 ---
 
@@ -429,6 +542,13 @@ After completing all four tasks:
 - Verify you didn't accidentally replace TypeScript syntax
 - Check that arrow functions `=>` are still intact
 - Ensure generic types like `Array<T>` weren't modified
+
+### If runtime errors occur (ReferenceError, undefined, etc.)
+- **Chart.js "Scale is not defined"**: Add missing scale imports (CategoryScale, LinearScale, etc.) and register them
+- **"X is not a function"**: Check that library components are properly imported from correct packages
+- **Build succeeds but runtime fails**: Test with `npx serve dist` and check browser console for specific errors
+- **Only happens in production**: Ensure all tree-shaken code has required registrations/imports
+- **Works in dev but not build**: Check for dynamic imports or lazy loading issues
 
 ---
 
