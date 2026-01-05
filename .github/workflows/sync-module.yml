@@ -127,3 +127,11 @@ jobs:
             git push
             echo "✅ Changes pushed successfully"
           fi
+      
+      - name: Trigger site deployment
+        run: |
+          echo "🚀 Triggering GitHub Pages deployment..."
+          gh workflow run deploy.yml
+          echo "✅ Deployment triggered!"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
