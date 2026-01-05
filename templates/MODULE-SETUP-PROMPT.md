@@ -6,11 +6,12 @@ Use this prompt when setting up new psychology learning modules to create the Gi
 
 ## Task Overview
 
-I need you to perform three critical setup tasks for this React/TypeScript educational module:
+I need you to perform four critical setup tasks for this React/TypeScript educational module:
 
 1. **Configure package.json** with required display name
-2. **Create GitHub Actions Workflow** for automated build, packaging, and deployment
-3. **Fix JSX Syntax Errors** specifically related to arrow syntax and special characters
+2. **Configure vite.config.ts** for proper asset paths
+3. **Create GitHub Actions Workflow** for automated build, packaging, and deployment
+4. **Fix JSX Syntax Errors** specifically related to arrow syntax and special characters
 
 ---
 
@@ -52,7 +53,43 @@ I need you to perform three critical setup tasks for this React/TypeScript educa
 
 ---
 
-## Task 2: Create GitHub Actions Workflow
+## Task 2: Configure vite.config.ts for Relative Paths
+
+### Instructions
+
+**CRITICAL**: Update `vite.config.ts` to use relative paths so assets load correctly when deployed to Psych-hub.
+
+### Steps
+
+1. Open `vite.config.ts`
+2. Add `base: './'` to the configuration
+3. Ensure `outDir: 'dist'` is set in the build options
+
+### Required Configuration
+
+```typescript
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+
+export default defineConfig({
+  plugins: [react()],
+  base: './', // Use relative paths - CRITICAL for Psych-hub deployment
+  build: {
+    outDir: 'dist',
+  }
+})
+```
+
+### Why This Matters
+
+- **Without `base: './'`**: Assets will load from absolute paths like `https://bluebaron42.github.io/assets/index.js` (WRONG)
+- **With `base: './'`**: Assets will load from relative paths like `./assets/index.js` (CORRECT)
+
+This ensures the module works when embedded in Psych-hub's subdirectory structure.
+
+---
+
+## Task 3: Create GitHub Actions Workflow
 
 ### Instructions
 
@@ -174,7 +211,7 @@ This workflow:
 
 ---
 
-## Task 3: Fix JSX Syntax Errors
+## Task 4: Fix JSX Syntax Errors
 
 ### Problem Description
 
@@ -339,9 +376,10 @@ Here's what a complete fix might look like:
 ## Complete Execution Checklist
 
 - [ ] **Task 1**: Add `displayName` field to `package.json`
-- [ ] **Task 2**: Create `.github/workflows/build-and-deploy.yml` with exact content above
+- [ ] **Task 2**: Update `vite.config.ts` with `base: './'` for relative paths
+- [ ] **Task 3**: Create `.github/workflows/build-and-deploy.yml` with exact content above
 - [ ] Ensure `permissions: contents: write` is included in workflow
-- [ ] **Task 3**: Search all `.tsx` and `.jsx` files for `->` patterns
+- [ ] **Task 4**: Search all `.tsx` and `.jsx` files for `->` patterns
 - [ ] Replace all JSX text content arrows with `→` Unicode character
 - [ ] Verify no malformed patterns like `{'->'}>` remain
 - [ ] Run `npm run build` to confirm no JSX syntax errors
@@ -353,19 +391,26 @@ Here's what a complete fix might look like:
 
 ## Expected Results
 
-After completing all three tasks:
+After completing all four tasks:
 
 1. ✅ `package.json` has correct `displayName` field
-2. ✅ GitHub Actions workflow file exists and is properly configured
-3. ✅ Workflow has correct permissions to create releases
-4. ✅ All JSX syntax errors related to arrow characters are resolved
-5. ✅ `npm run build` completes successfully with no errors
-6. ✅ Workflow can be triggered manually or via tags
-7. ✅ Module deploys to correct folder name in Psych-hub (matching displayName)
+2. ✅ `vite.config.ts` configured with `base: './'` for relative asset paths
+3. ✅ GitHub Actions workflow file exists and is properly configured
+4. ✅ Workflow has correct permissions to create releases
+5. ✅ All JSX syntax errors related to arrow characters are resolved
+6. ✅ `npm run build` completes successfully with no errors
+7. ✅ Workflow can be triggered manually or via tags
+8. ✅ Module deploys to correct folder name in Psych-hub (matching displayName)
+9. ✅ Assets load correctly with relative paths (no 404 errors)
 
 ---
 
 ## Troubleshooting
+
+### If assets fail to load (404 errors or wrong MIME type)
+- Verify `vite.config.ts` has `base: './'` 
+- Rebuild and redeploy the module
+- Check browser console for asset path errors
 
 ### If module deploys to wrong folder name
 - Check that `displayName` in `package.json` matches desired folder name
