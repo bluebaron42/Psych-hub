@@ -69,6 +69,27 @@ jobs:
           mkdir -p "docs/modules/$MODULE_NAME"
           unzip -o /tmp/module-dist.zip -d "docs/modules/$MODULE_NAME"
       
+      - name: Fix asset paths for deployment
+        run: |
+          MODULE_NAME="${{ github.event.client_payload.module_name || github.event.inputs.module_display_name }}"
+          
+          echo "🔧 Fixing asset paths to use relative URLs..."
+          
+          # Fix paths in both public and docs
+          for BASE_DIR in "public/modules/$MODULE_NAME" "docs/modules/$MODULE_NAME"; do
+            if [ -f "$BASE_DIR/index.html" ]; then
+              echo "   Fixing $BASE_DIR/index.html"
+              # Replace absolute asset paths with relative ones
+              sed -i 's|src="/assets/|src="./assets/|g' "$BASE_DIR/index.html"
+              sed -i 's|href="/assets/|href="./assets/|g' "$BASE_DIR/index.html"
+              # Also fix any /Psych-hub/assets/ paths
+              sed -i 's|src="/Psych-hub/assets/|src="./assets/|g' "$BASE_DIR/index.html"
+              sed -i 's|href="/Psych-hub/assets/|href="./assets/|g' "$BASE_DIR/index.html"
+            fi
+          done
+          
+          echo "✅ Asset paths fixed"
+      
       - name: Update modules.json
         run: |
           MODULE_NAME="${{ github.event.client_payload.module_name || github.event.inputs.module_display_name }}"
