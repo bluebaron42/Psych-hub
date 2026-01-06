@@ -1,0 +1,42 @@
+/* Global mobile overrides for embedded module pages */
+/* Conservative defaults to avoid breaking layouts while improving mobile usability */
+
+html, body {
+  max-width: 100%;
+  overflow-x: hidden;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+* , *::before, *::after {
+  box-sizing: border-box;
+}
+
+img, video, canvas, svg {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Prevent fixed-width containers from forcing horizontal scroll on small screens */
+[class*="container"], [class*="wrapper"], [class*="content"], [class*="main"], [class*="page"], [class*="module"] {
+  max-width: 100% !important;
+}
+
+/* Make tables scroll instead of overflowing the viewport */
+.table-responsive, table {
+  width: 100%;
+  display: block;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Standardize headings to wrap nicely on narrow screens */
+h1, h2, h3, h4, h5, h6 {
+  word-wrap: break-word;
+  overflow-wrap: anywhere;
+}
+
+/* Ensure embedded iframes inside modules are responsive */
+iframe {
+  max-width: 100%;
+}

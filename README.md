@@ -18,3 +18,10 @@ View your app in AI Studio: https://ai.studio/apps/drive/1cZAfyRf7_-1XrgOTej4eUY
 2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
 3. Run the app:
    `npm run dev`
+
+## Mobile Optimization (Global)
+
+- A global mobile override is injected into all embedded module pages loaded via iframes to improve responsiveness without editing each module.
+- The injection adds/updates a viewport meta tag and attaches a shared stylesheet located at [public/mobile-override.css](public/mobile-override.css).
+- Implementation lives in [services/mobileOptimization.ts](services/mobileOptimization.ts) and is called when iframes load in [App.tsx](App.tsx).
+- This approach works for same-origin modules served under `public/modules/*`. Cross-origin modules cannot be modified by the parent page.
