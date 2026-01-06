@@ -35,16 +35,29 @@ export function injectMobileOverridesIntoIframe(iframe: HTMLIFrameElement | null
       doc.head.appendChild(link);
     }
 
-    // As a fallback, inject minimal inline styles to ensure images and body don't overflow
+    // Inject media-query scoped inline styles (only apply on mobile viewports)
     const existingStyle = doc.querySelector('style[data-mobile-inline="true"]');
     if (!existingStyle) {
       const style = doc.createElement('style');
       style.setAttribute('data-mobile-inline', 'true');
       style.textContent = `
-        html, body { max-width: 100%; overflow-x: hidden; -webkit-text-size-adjust: 100%; }
-        *, *::before, *::after { box-sizing: border-box; }
-        img, video, canvas, svg { max-width: 100%; height: auto; }
-        iframe { max-width: 100%; }
+        @media (max-width: 850px) {
+          html, body {
+            max-width: 100% !important;
+            width: 100% !important;
+            overflow-x: hidden !important;
+            -webkit-text-size-adjust: 100%;
+            margin: 0 !important;
+            padding: 0 !important;
+          }
+          *, *::before, *::after { box-sizing: border-box; }
+          img, video, canvas, svg { max-width: 100% !important; height: auto !important; }
+          iframe { max-width: 100% !important; width: 100% !important; }
+          /* Hide sidebars on mobile */
+          [class*="sidebar"], [class*="nav-side"], [class*="aside"], [class*="menu-side"], nav[class*="side"] { display: none !important; }
+          /* Force single column on small screens */
+          [class*="grid"], [class*="flex"] { flex-direction: column !important; }
+        }
       `;
       doc.head.appendChild(style);
     }

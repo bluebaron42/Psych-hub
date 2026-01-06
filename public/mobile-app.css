@@ -1,0 +1,62 @@
+/* Host app mobile-only adjustments via media query */
+
+:root {
+  --mobile-base-font: 16px;
+}
+
+@media (max-width: 850px) {
+  html, body {
+    font-size: var(--mobile-base-font);
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    width: 100%;
+    overflow-x: hidden;
+  }
+
+  /* Ensure main containers don't exceed viewport */
+  .container-mobile-fill {
+    width: 100%;
+    max-width: 100%;
+    height: calc(100vh - 6rem);
+    max-height: calc(100vh - 6rem);
+    overflow-y: auto;
+    overflow-x: hidden;
+    position: relative;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Slide container for mobile */
+  .slide-mobile {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: calc(100vh - 12rem) !important;
+    max-height: calc(100vh - 12rem) !important;
+    overflow: hidden;
+    aspect-ratio: auto !important;
+  }
+
+  /* Ensure iframe fills its container */
+  .container-mobile-fill iframe {
+    width: 100%;
+    height: 100%;
+    display: block;
+    border: none;
+    margin: 0;
+    padding: 0;
+  }
+}
+
+@media (min-width: 851px) {
+  /* Desktop defaults */
+  .slide-mobile {
+    aspect-ratio: 16 / 9;
+  }
+}
+
+:fullscreen .slide-mobile {
+  height: 100vh !important;
+  max-height: 100vh !important;
+  width: 100vw !important;
+  max-width: 100vw !important;
+  aspect-ratio: auto !important;
+}

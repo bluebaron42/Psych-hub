@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Book, Brain, Activity, ChevronRight, Layout, FileText,
   Play, ArrowLeft, ArrowRight, Home, FileDigit, Sparkles, Zap
@@ -6,7 +6,6 @@ import {
 import { Level, ModuleCategory, LessonModule, Lesson, Slide } from './types';
 import { SlideRenderer } from './components/SlideRenderer';
 import { TOPIC_APP_REGISTRY, TOPIC_IFRAME_URLS } from './components/topics/registry';
-import { injectMobileOverridesIntoIframe } from './services/mobileOptimization';
 
 // --- MOCK CURRICULUM SKELETON (Navigation Structure) ---
 const CURRICULUM_SKELETON = {
@@ -64,7 +63,6 @@ export default function App() {
   const [iframeLoading, setIframeLoading] = useState(true);
   const [appLoading, setAppLoading] = useState(true);
   const [initializing, setInitializing] = useState(true);
-  const iframeRef = useRef<HTMLIFrameElement>(null);
 
   // Load dynamic modules registry and saved state on mount
   useEffect(() => {
@@ -243,11 +241,7 @@ export default function App() {
                           className={`w-full h-full border-0 transition-opacity duration-500 ${iframeLoading ? 'opacity-0' : 'opacity-100'}`}
                           style={{ backgroundColor: '#0f172a' }}
                           title={`${currentTopic} Module`}
-                          ref={iframeRef}
-                          onLoad={() => {
-                            injectMobileOverridesIntoIframe(iframeRef.current);
-                            setIframeLoading(false);
-                          }}
+                          onLoad={() => setIframeLoading(false)}
                       />
                       {iframeLoading && (
                           <div className="absolute inset-0 flex items-center justify-center bg-slate-900">
