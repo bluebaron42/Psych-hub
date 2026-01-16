@@ -126,12 +126,5 @@ jobs:
             git commit -m "🔄 Update module: $MODULE_NAME ($VERSION)"
             git push
             echo "✅ Changes pushed successfully"
+            echo "📦 GitHub Pages will auto-deploy on push"
           fi
-      
-      - name: Trigger site deployment
-        run: |
-          echo "🚀 Triggering GitHub Pages deployment..."
-          gh workflow run deploy.yml
-          echo "✅ Deployment triggered!"
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
