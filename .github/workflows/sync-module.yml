@@ -107,7 +107,8 @@ jobs:
           modules['$MODULE_NAME'] = '/Psych-hub/modules/$MODULE_NAME/index.html';
           
           fs.writeFileSync(modulesPath, JSON.stringify(modules, null, 2) + '\n');
-          console.log('✅ Updated modules.json');
+          fs.writeFileSync('docs/modules.json', JSON.stringify(modules, null, 2) + '\n');
+          console.log('✅ Updated modules.json and docs/modules.json');
           "
       
       - name: Commit and push changes
