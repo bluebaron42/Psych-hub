@@ -94,21 +94,22 @@ jobs:
         run: |
           MODULE_NAME="${{ github.event.client_payload.module_name || github.event.inputs.module_display_name }}"
           
-          # Update modules.json
+          # Update modules.json in all locations
           node -e "
           const fs = require('fs');
-          const modulesPath = 'modules.json';
           let modules = {};
           
-          if (fs.existsSync(modulesPath)) {
-            modules = JSON.parse(fs.readFileSync(modulesPath, 'utf8'));
+          if (fs.existsSync('modules.json')) {
+            modules = JSON.parse(fs.readFileSync('modules.json', 'utf8'));
           }
           
           modules['$MODULE_NAME'] = '/Psych-hub/modules/$MODULE_NAME/index.html';
           
-          fs.writeFileSync(modulesPath, JSON.stringify(modules, null, 2) + '\n');
-          fs.writeFileSync('docs/modules.json', JSON.stringify(modules, null, 2) + '\n');
-          console.log('✅ Updated modules.json and docs/modules.json');
+          const json = JSON.stringify(modules, null, 2) + '\n';
+          fs.writeFileSync('modules.json', json);
+          fs.writeFileSync('public/modules.json', json);
+          fs.writeFileSync('docs/modules.json', json);
+          console.log('✅ Updated modules.json in all locations');
           "
       
       - name: Commit and push changes
