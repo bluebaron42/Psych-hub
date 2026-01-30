@@ -112,6 +112,45 @@ jobs:
           console.log('✅ Updated modules.json in all locations');
           "
       
+      - name: Update topic registry
+        run: |
+          MODULE_NAME="${{ github.event.client_payload.module_name || github.event.inputs.module_display_name }}"
+          
+          # URL-encode the module name for special characters
+          ENCODED_NAME=$(node -e "console.log(encodeURIComponent('$MODULE_NAME').replace(/%20/g, '%20'))")
+          
+          # Update the registry file to add the new module
+          node -e "
+          const fs = require('fs');
+          const registryPath = 'components/topics/registry.tsx';
+          
+          let content = fs.readFileSync(registryPath, 'utf8');
+          
+          const moduleName = '$MODULE_NAME';
+          const encodedName = '$ENCODED_NAME';
+          const moduleUrl = '/Psych-hub/modules/' + encodedName + '/index.html';
+          
+          // Check if module already exists in registry
+          if (content.includes('\"' + moduleName + '\"')) {
+            console.log('ℹ️ Module already in registry: ' + moduleName);
+            process.exit(0);
+          }
+          
+          // Find the TOPIC_IFRAME_URLS object and add the new entry
+          const regex = /(export const TOPIC_IFRAME_URLS[^{]*\{[^}]*)(};)/s;
+          const match = content.match(regex);
+          
+          if (match) {
+            const newEntry = '  \"' + moduleName + '\": \"' + moduleUrl + '\",\n';
+            content = content.replace(regex, '\$1' + newEntry + '\$2');
+            fs.writeFileSync(registryPath, content);
+            console.log('✅ Added to registry: ' + moduleName);
+          } else {
+            console.error('❌ Could not find TOPIC_IFRAME_URLS in registry');
+            process.exit(1);
+          }
+          "
+      
       - name: Commit and push changes
         run: |
           MODULE_NAME="${{ github.event.client_payload.module_name || github.event.inputs.module_display_name }}"
@@ -120,7 +159,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           
-          git add public/modules docs/modules modules.json
+          git add public/modules docs/modules modules.json public/modules.json docs/modules.json components/topics/registry.tsx
           
           if git diff --staged --quiet; then
             echo "ℹ️ No changes to commit"

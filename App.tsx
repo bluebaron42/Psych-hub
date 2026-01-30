@@ -12,7 +12,7 @@ const CURRICULUM_SKELETON = {
   GCSE: {
     GCSE_PAPER1: {
         title: "Paper 1: Cognition & Behaviour",
-        modules: ["Memory", "Perception", "Development", "Research Methods"]
+        modules: ["Memory", "Perception", "Development"]
     },
     GCSE_PAPER2: {
         title: "Paper 2: Social Context",
@@ -26,7 +26,7 @@ const CURRICULUM_SKELETON = {
     },
     ALEVEL_PAPER2: {
         title: "Paper 2: Psychology in Context",
-        modules: ["Approaches", "Biopsychology", "Research Methods"]
+        modules: ["Approaches", "Biopsychology"]
     },
     ALEVEL_PAPER3: {
         title: "Paper 3: Issues and Options",
@@ -536,6 +536,23 @@ export default function App() {
             icon={<Activity size={48} />}
             onClick={() => selectLevel('ALEVEL')}
         />
+      </div>
+
+      {/* Research Methods - Standalone Section */}
+      <div className="mt-12 z-10">
+        <button
+          onClick={() => startLesson('Research Methods')}
+          className="group flex items-center gap-4 px-8 py-4 bg-slate-900/80 hover:bg-slate-800 border border-slate-700 hover:border-emerald-500/50 rounded-2xl transition-all duration-300 hover:shadow-xl hover:shadow-emerald-900/20"
+        >
+          <div className="bg-emerald-500/10 w-12 h-12 rounded-xl flex items-center justify-center group-hover:bg-emerald-500 group-hover:text-white transition-colors text-emerald-500">
+            <FileDigit size={24} />
+          </div>
+          <div className="text-left">
+            <h3 className="text-xl font-bold text-white">Research Methods</h3>
+            <p className="text-slate-400 text-sm">GCSE & A-Level</p>
+          </div>
+          <ChevronRight size={20} className="text-slate-500 group-hover:text-emerald-400 ml-4 transition-colors" />
+        </button>
       </div>
 
       <div className="absolute bottom-8 text-slate-600 text-xs flex items-center gap-2 font-mono">
