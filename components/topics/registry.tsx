@@ -16,4 +16,5 @@ export const TOPIC_IFRAME_URLS: Record<string, string> = {
   "Relationships": "/Psych-hub/modules/Relationships/index.html?v=2",
   "Attachment": "/Psych-hub/modules/Attachment/index.html",
   "Research Methods": "/Psych-hub/modules/Research%20Methods/index.html",
+  "Approaches": "/Psych-hub/modules/Approaches/index.html",
 };
